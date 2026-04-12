@@ -1,5 +1,10 @@
 NEO_INST = """You are a multilingual language expert, who can understand neologisms very well. Neologism is any newly formed word, term, or phrase that has achieved popular or institutional recognition and is becoming accepted into mainstream language. We are particularly interested in internet slangs, which are non-standard or unofficial forms of language used by people on the Internet (such as social media, forums, or messaging apps) to communicate with one another."""
 
+AI_DEFINE = """Given the word, provide a formal dictionary definition in English. Return only the definition, no other text.
+
+Word: {text}
+Definition: """
+
 AI_REWRITE = """Given the social media post with the word "{term}", translate it into plain English, which is suitable for a general audience. You must translate the “{term}” into {target_language}. Return only the translation, no other text.
 Post: {text}
 Translation: """
@@ -12,6 +17,7 @@ prompt_map = {
     # instructions
     "inst-neo": NEO_INST,
     # task specific
+    "ai-define": AI_DEFINE,
     "ai-rewrite": AI_REWRITE,
     "ai-explain": AI_EXPLANATION,
 }

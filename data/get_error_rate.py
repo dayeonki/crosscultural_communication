@@ -1,4 +1,3 @@
-import os
 import json
 import argparse
 import pandas as pd
@@ -36,7 +35,7 @@ class ErrorRateProcessor:
                     if word:
                         self.ref_explanations[word] = explanation
 
-        if task in ["translate", "define", "explain"]:
+        if task in ["rewrite", "define", "explain"]:
             self.embed_model = SentenceTransformer(embed_model_name, device=device)
         else:
             self.embed_model = None
@@ -97,8 +96,8 @@ class ErrorRateProcessor:
                     item[f"sim_explain_ref_{key}"] = self.compute_similarity(ref_exp or "", explain_text or "")
                     print(f"Reference explanation: {ref_exp}")
 
-        elif self.task == "translate":
-            print("🪄 Condition: LLM Translation")
+        elif self.task == "rewrite":
+            print("🪄 Condition: LLM Rewrite")
             social_media_post = item.get("social_media_post", "")
             mt_langs = {"en": item.get("response", "")}
             for key, mt_text in mt_langs.items():
@@ -118,7 +117,7 @@ class ErrorRateProcessor:
                     keys = [k for k in item.keys() if k.startswith("sim_short") or k.startswith("sim_long")]
                 elif self.task == "explain":
                     keys = [k for k in item.keys() if k.startswith("sim_explain")]
-                elif self.task == "translate":
+                elif self.task == "rewrite":
                     keys = [k for k in item.keys() if k.startswith("sim_")]
                 else:
                     keys = []
@@ -139,7 +138,7 @@ if __name__ == "__main__":
                         help="File with ground truth definitions")
     parser.add_argument('--reference_dict_jsonl', type=str, default=None,
                         help="Reference explanations in JSONL (only used if task=explain)")
-    parser.add_argument('--task', type=str, choices=['define', 'explain', 'translate'],
+    parser.add_argument('--task', type=str, choices=['define', 'explain', 'rewrite'],
                         required=True, help="Which evaluation to run")
     args = parser.parse_args()
 
