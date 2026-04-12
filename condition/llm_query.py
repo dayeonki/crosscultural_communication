@@ -13,6 +13,7 @@ load_dotenv(_PROJECT_ROOT / ".env")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 DEFAULT_INPUT_BY_TASK = {
+    "ai-define": _PROJECT_ROOT / "data" / "per_condition" / "ai_define.jsonl",
     "ai-rewrite": _PROJECT_ROOT / "data" / "per_condition" / "ai_rewrite.jsonl",
     "ai-explain": _PROJECT_ROOT / "data" / "per_condition" / "ai_explanation.jsonl",
 }
@@ -42,36 +43,25 @@ def generate_response(instruction, user_input, model_name="gpt-4.1-2025-04-14"):
     return response.output_text
 
 
-def get_prompts(task: str, target_language: str, data_dict: dict, word: str):
+def get_prompts(task: str, data_dict: dict, word: str):
     inst_prompt = prompt_map["inst-neo"]
     task_template = prompt_map[task]
-    if task == "ai-rewrite":
+    if task == "ai-define":
+        user_input = task_template.format(
+            text=word,
+        )
+    elif task == "ai-rewrite":
         user_input = task_template.format(
             term=word,
             text=data_dict[word]["social_media_post"],
-            target_language=target_language,
         )
     elif task == "ai-explain":
         user_input = task_template.format(
             text=word,
-            target_language=target_language,
         )
     else:
         raise ValueError(f"Unsupported task {task!r}; extend get_prompts and llm_prompts.")
     return inst_prompt, user_input
-
-
-def get_lang_code(language: str) -> str:
-    codes = {
-        "English": "en",
-        "Korean": "ko",
-        "Chinese": "zh",
-        "French": "fr",
-        "Spanish": "es",
-    }
-    if language not in codes:
-        raise ValueError(f"Unsupported target_language {language!r}")
-    return codes[language]
 
 
 def main():
@@ -79,13 +69,8 @@ def main():
     parser.add_argument(
         "--task",
         type=str,
-        choices=["ai-rewrite", "ai-explain"],
+        choices=["ai-define", "ai-rewrite", "ai-explain"],
         default="ai-rewrite",
-    )
-    parser.add_argument(
-        "--target_language",
-        type=str,
-        default="English",
     )
     parser.add_argument(
         "--input",
@@ -106,13 +91,12 @@ def main():
     )
     data_dict = load_data(input_path)
 
-    out_name = f"{task}_{get_lang_code(args.target_language)}.jsonl"
+    out_name = f"{task}.jsonl"
     out_path = _SCRIPT_DIR / out_name
     with open(out_path, "w", encoding="utf-8") as fout:
         for word in data_dict:
             inst_prompt, user_input = get_prompts(
                 task,
-                args.target_language,
                 data_dict,
                 word,
             )
