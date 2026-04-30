@@ -14,7 +14,7 @@ University of Maryland <br>
 This repository contains the code and dataset for our ACL Findings 2026 paper <br> **Reheat Nachos for Dinner? Evaluating AI Support for Cross-Cultural Communication of Neologisms**.
 
 <p>
-  <a href="" target="_blank" style="text-decoration:none">
+  <a href="https://arxiv.org/abs/2604.23842" target="_blank" style="text-decoration:none">
     <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?style=flat&logo=arxiv" alt="arXiv">
   </a>
 </p>
