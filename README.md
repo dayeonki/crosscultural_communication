@@ -100,7 +100,7 @@ Arguments for computing error rates are as follows:
 
 ### R Analysis
 
-R analyses for the paper are provided in `analysis/main_analysis.html`.
+Statistical analyses for the paper are provided in `analysis/main_analysis.Rmd` ([rendered preview](https://htmlpreview.github.io/?https://github.com/dayeonki/crosscultural_communication/blob/main/analysis/main_analysis.html)).
 Participant data files are not included in this repository for privacy reasons. If you are interested in the data, please contact the authors.
 
 ---

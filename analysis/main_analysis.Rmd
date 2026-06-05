@@ -1,0 +1,208 @@
+---
+title: "R Analysis"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    mathjax: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Overview & Setup
+
+This document reproduces the mixed-effects analyses reported in the paper.
+Participant-level data files are **not** included in this repository for privacy reasons.
+
+```{r libraries}
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(readr)
+
+# Update this path to wherever you store the analysis CSVs locally.
+data_dir <- "PATH/TO/YOUR/DATA"
+
+ns_data_path  <- file.path(data_dir, "ns_data.csv")
+nns_data_path <- file.path(data_dir, "nns_data.csv")
+mcq_data_path <- file.path(data_dir, "mcq_data.csv")
+
+emm_options(pbkrtest.limit = 3744)  # matches total number of observations
+```
+
+---
+
+## NS-Rated Communicative Competence
+
+Four dimensions rated by NS evaluators on a 10-point Likert scale (higher = better):
+
+| Variable | Dimension |
+|----------|-----------|
+| `ns_wf_comb` | Well-formedness |
+| `ns_ca`      | Contextual appropriateness |
+| `ns_u1`      | Understandability (NS) |
+| `ns_u2`      | Understandability (NNS) |
+
+```{r rq1-ns-load}
+ns_df <- read_csv(ns_data_path)
+ns_df$condition <- relevel(as.factor(ns_df$condition), ref = "control")
+ns_df$language  <- relevel(as.factor(ns_df$language),  ref = "Chinese")
+
+ns_df$ns_wf_comb <- (ns_df$ns_accept + ns_df$ns_wf) / 2
+```
+
+### Mixed-effects models
+
+Fixed effects: `condition * language`, `nns_familiarity`, `social_media_usage`.
+Random effects: by-participant (`nns_part_id`) and by-NS-evaluator (`ns_eval_id`).
+
+```{r rq1-ns-models}
+model_wf_comb <- lmer(
+  ns_wf_comb ~ condition * language + nns_familiarity + social_media_usage +
+    (1 | nns_part_id) + (1 | ns_eval_id),
+  data = ns_df
+)
+
+model_ca <- lmer(
+  ns_ca ~ condition * language + nns_familiarity + social_media_usage +
+    (1 | nns_part_id) + (1 | ns_eval_id),
+  data = ns_df
+)
+
+model_u1 <- lmer(
+  ns_u1 ~ condition * language + nns_familiarity + social_media_usage +
+    (1 | nns_part_id) + (1 | ns_eval_id),
+  data = ns_df
+)
+
+model_u2 <- lmer(
+  ns_u2 ~ condition * language + nns_familiarity + social_media_usage +
+    (1 | nns_part_id) + (1 | ns_eval_id),
+  data = ns_df
+)
+
+summary(model_wf_comb)
+summary(model_ca)
+summary(model_u1)
+summary(model_u2)
+```
+
+### Post-hoc pairwise comparisons
+
+Bonferroni-adjusted pairwise contrasts applied to all four dimensions.
+
+```{r rq1-ns-emmeans}
+for (model in list(model_wf_comb, model_ca, model_u1, model_u2)) {
+  emm <- emmeans(model, ~ condition)
+  print(emm)
+  print(pairs(emm, adjust = "bonferroni"))
+}
+```
+
+---
+
+## NNS Self-Reported Perceptions
+
+Confidence and helpfulness rated on a 5-point Likert scale (higher = better).
+Helpfulness was not collected for the Control condition.
+
+| Variable | Dimension |
+|----------|-----------|
+| `confidence`        | Confidence (Learning) |
+| `confidence_page2`  | Confidence (Production) |
+| `helpfulness`       | Helpfulness (Learning) |
+| `helpfulness_page2` | Helpfulness (Production) |
+
+```{r rq2-load}
+conf_df <- read_csv(nns_data_path)
+conf_df$condition <- relevel(as.factor(conf_df$condition), ref = "control")
+conf_df$language  <- relevel(as.factor(conf_df$language),  ref = "Chinese")
+
+conf_df_no_ctrl <- conf_df[conf_df$condition != "control", ]
+```
+
+### Mixed-effects models
+
+Fixed effects: `condition * language`, `familiarity_rating`, `social_media_usage`.
+Random effects: by-participant (`pid`) and by-word (`word`).
+
+```{r rq2-models}
+model_conf_learn <- lmer(
+  confidence ~ condition * language + familiarity_rating + social_media_usage +
+    (1 | pid) + (1 | word),
+  data = conf_df
+)
+
+model_conf_prod <- lmer(
+  confidence_page2 ~ condition * language + familiarity_rating + social_media_usage +
+    (1 | pid) + (1 | word),
+  data = conf_df
+)
+
+model_help_learn <- lmer(
+  helpfulness ~ condition * language + familiarity_rating + social_media_usage +
+    (1 | pid) + (1 | word),
+  data = conf_df_no_ctrl
+)
+
+model_help_prod <- lmer(
+  helpfulness_page2 ~ condition * language + familiarity_rating + social_media_usage +
+    (1 | pid) + (1 | word),
+  data = conf_df_no_ctrl
+)
+
+summary(model_conf_learn)
+summary(model_conf_prod)
+summary(model_help_learn)
+summary(model_help_prod)
+```
+
+### Post-hoc pairwise comparisons
+
+```{r rq2-emmeans}
+for (model in list(model_conf_learn, model_conf_prod, model_help_learn, model_help_prod)) {
+  emm <- emmeans(model, ~ condition)
+  print(emm)
+  print(pairs(emm, adjust = "bonferroni"))
+}
+```
+
+---
+
+## NNS Comprehension Distance
+
+For each writing sample shown to NNS participants, distance is computed as
+$|{c} - (c_1^* + c_2^*) / 2|$, where ${c}$ is the NNS rating and $c_1^*, c_2^*$ are NS evaluator ratings collected prior to the study for each writing sample. Lower = better.
+
+```{r rq3-mcq-load}
+mcq_df <- read_csv(mcq_data_path)
+mcq_df$condition <- relevel(as.factor(mcq_df$condition), ref = "control")
+mcq_df$language  <- relevel(as.factor(mcq_df$language),  ref = "Chinese")
+```
+
+### Mixed-effects models
+
+```{r rq3-mcq-models}
+model_mcq_center <- lmer(
+  abs_center_distance ~ condition * language + familiarity_rating + social_media_usage +
+    (1 | pid) + (1 | word),
+  data = mcq_df
+)
+summary(model_mcq_center)
+```
+
+### Post-hoc pairwise comparisons
+
+```{r rq3-mcq-emmeans}
+emm_mcq_center <- emmeans(model_mcq_center, ~ condition)
+print(emm_mcq_center)
+pairs(emm_mcq_center, adjust = "bonferroni")
+```
