@@ -109,7 +109,28 @@ Participant data files are not included in this repository for privacy reasons. 
 ## 🤲 Citation
 If you find our work useful in your research, please consider citing our work:
 ```
-TBD
+@inproceedings{ki-etal-2026-reheat,
+    title = "Reheat Nachos for Dinner? Evaluating {AI} Support for Cross-Cultural Communication of Neologisms",
+    author = "Ki, Dayeon  and
+      Hou, Yu  and
+      Rudinger, Rachel  and
+      Daum{\'e} Iii, Hal  and
+      Carpuat, Marine  and
+      Yang, Fumeng",
+    editor = "Liakata, Maria  and
+      Moreira, Viviane P.  and
+      Zhang, Jiajun  and
+      Jurgens, David",
+    booktitle = "Findings of the {A}ssociation for {C}omputational {L}inguistics: {ACL} 2026",
+    month = jul,
+    year = "2026",
+    address = "San Diego, California, United States",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2026.findings-acl.1312/",
+    doi = "10.18653/v1/2026.findings-acl.1312",
+    pages = "26325--26362",
+    ISBN = "979-8-89176-395-1",
+}
 ```
 
 
